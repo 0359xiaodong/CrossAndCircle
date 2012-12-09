@@ -7,8 +7,7 @@ public class Field extends org.andengine.entity.sprite.TiledSprite {
 	
 	private FieldType mType;
 	private boolean mSelected;
-	private MainActivity mListener;
-	
+
 	public Field(float pX, float pY, ITiledTextureRegion pTiledTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager) {
 		super(pX, pY, pTiledTextureRegion, pVertexBufferObjectManager);
 		mSelected = false;
@@ -33,14 +32,5 @@ public class Field extends org.andengine.entity.sprite.TiledSprite {
 
 	public void setSelected(boolean s) {
 		this.mSelected = s;
-	}
-	
-	public synchronized void registerFieldClickedListener(MainActivity m) {
-		mListener = m;
-	}
-	
-	public synchronized void fireFieldClickedEvent()
-	{
-		mListener.fieldClicked(this);
 	}
 }

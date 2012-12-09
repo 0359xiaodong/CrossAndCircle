@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.EventObject;
 
+import org.andengine.engine.Engine;
 import org.andengine.engine.options.EngineOptions;
+import org.andengine.entity.scene.IOnAreaTouchListener;
+import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
+import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.sprite.TiledSprite;
 import org.andengine.opengl.texture.ITexture;
@@ -17,6 +21,7 @@ import org.andengine.opengl.texture.region.TextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
+import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
 
 import org.andengine.engine.camera.Camera;
@@ -24,7 +29,7 @@ import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.input.touch.TouchEvent;
 
-public class MainActivity extends SimpleBaseGameActivity implements FieldClickedListener {
+public class MainActivity extends SimpleBaseGameActivity {
 
 	private static int CAMERA_WIDTH = 480;
 	private static int CAMERA_HEIGHT = 800;
@@ -64,23 +69,6 @@ public class MainActivity extends SimpleBaseGameActivity implements FieldClicked
 	}
 	
 	@Override
-	public void fieldClicked(Field field) {
-		field.setType(mRound);
-		
-		if(checkWinningCondition()) Debug.e("WIIIIIIIN");
-		
-		if(mRound == FieldType.CROSS || mRound == FieldType.EMPTY)
-		{
-			mRound = FieldType.CIRCLE;
-			
-		}
-		else
-		{
-			mRound = FieldType.CROSS;
-		}
-	}
-	
-	@Override
 	public EngineOptions onCreateEngineOptions() {
 		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, 
@@ -89,6 +77,7 @@ public class MainActivity extends SimpleBaseGameActivity implements FieldClicked
 
 	@Override
 	protected void onCreateResources() {
+		
 		ITexture states = null;
 		
 		try
@@ -136,20 +125,39 @@ public class MainActivity extends SimpleBaseGameActivity implements FieldClicked
 				y = 266;
 			}
 			
-			mFields[i] = new Field(x, y, this.mTTxtRegStates, getVertexBufferObjectManager()) {
-				@Override
-			    public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
-					if(this.getType() != FieldType.EMPTY) return false;
-					this.fireFieldClickedEvent();
-			        return true;
-			    }
-			};
-			mFields[i].registerFieldClickedListener(this);
+			mFields[i] = new Field(x, y, this.mTTxtRegStates, getVertexBufferObjectManager());
 			scene.registerTouchArea(mFields[i]);
 			scene.attachChild(mFields[i]);
 		}
 		
 		scene.setTouchAreaBindingOnActionDownEnabled(true);
+		scene.setOnAreaTouchListener(new IOnAreaTouchListener() {
+			
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent, ITouchArea pTouchArea, float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				for(Field f : mFields) {
+					if(pTouchArea.equals(f)) {
+						if(f.getType() != FieldType.EMPTY) return false;
+						f.setType(mRound);
+						
+						if(checkWinningCondition()) Debug.e("WIIIIIIIN");
+						
+						if(mRound == FieldType.CROSS || mRound == FieldType.EMPTY)
+						{
+							mRound = FieldType.CIRCLE;
+							
+						}
+						else
+						{
+							mRound = FieldType.CROSS;
+						}
+						
+						return true;
+					}
+				}
+				return false;
+			}
+		});
 		
 		return scene;
 	}
