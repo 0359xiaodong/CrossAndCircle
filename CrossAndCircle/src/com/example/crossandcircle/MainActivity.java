@@ -140,8 +140,6 @@ public class MainActivity extends SimpleBaseGameActivity {
 						if(f.getType() != FieldType.EMPTY) return false;
 						f.setType(mRound);
 						
-						if(checkWinningCondition()) Debug.e("WIIIIIIIN");
-						
 						if(mRound == FieldType.CROSS || mRound == FieldType.EMPTY)
 						{
 							mRound = FieldType.CIRCLE;
@@ -158,6 +156,9 @@ public class MainActivity extends SimpleBaseGameActivity {
 				return false;
 			}
 		});
+		
+		final Scene scene2 = new Scene();
+		
 		
 		return scene;
 	}
