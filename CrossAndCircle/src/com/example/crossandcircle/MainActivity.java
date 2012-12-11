@@ -34,6 +34,9 @@ public class MainActivity extends SimpleBaseGameActivity {
 	private static int CAMERA_WIDTH = 480;
 	private static int CAMERA_HEIGHT = 800;
 	
+	private final Scene gameScene;
+	private final MenuScene menuScene;
+	
 	private ITiledTextureRegion mTTxtRegStates;
 	
 	private Field[] mFields;
@@ -52,6 +55,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 	public MainActivity()
 	{
 		mRound = FieldType.CIRCLE;
+		menuScene = new MenuScene();
+		gameScene = new Scene();
 	}
 	
 	private boolean checkWinningCondition()
@@ -99,11 +104,13 @@ public class MainActivity extends SimpleBaseGameActivity {
 		}
 		
 		this.mTTxtRegStates = TextureRegionFactory.extractTiledFromTexture(states, 3, 1);
+		
+		menuScene.prepare(this.getEngine(), this);
 	}
 
 	@Override
 	protected Scene onCreateScene() {
-		final Scene scene = new Scene();
+		//final Scene scene = new Scene();
 		
 		mFields = new Field[9];
 		
@@ -126,30 +133,48 @@ public class MainActivity extends SimpleBaseGameActivity {
 			}
 			
 			mFields[i] = new Field(x, y, this.mTTxtRegStates, getVertexBufferObjectManager());
-			scene.registerTouchArea(mFields[i]);
-			scene.attachChild(mFields[i]);
+			gameScene.registerTouchArea(mFields[i]);
+			gameScene.attachChild(mFields[i]);
 		}
 		
-		scene.setTouchAreaBindingOnActionDownEnabled(true);
-		scene.setOnAreaTouchListener(new IOnAreaTouchListener() {
+		gameScene.setTouchAreaBindingOnActionDownEnabled(true);
+		gameScene.setOnAreaTouchListener(new IOnAreaTouchListener() {
 			
 			@Override
 			public boolean onAreaTouched(TouchEvent pSceneTouchEvent, ITouchArea pTouchArea, float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				for(Field f : mFields) {
-					if(pTouchArea.equals(f)) {
-						if(f.getType() != FieldType.EMPTY) return false;
-						f.setType(mRound);
-						
-						if(mRound == FieldType.CROSS || mRound == FieldType.EMPTY)
-						{
-							mRound = FieldType.CIRCLE;
-							
+				if (pSceneTouchEvent.isActionUp()) {
+					for (Field f : mFields) {
+						if (pTouchArea.equals(f)) {
+							if (f.getType() != FieldType.EMPTY)
+								return false;
+							f.setType(mRound);
+
+							if (mRound == FieldType.CROSS
+									|| mRound == FieldType.EMPTY) {
+								mRound = FieldType.CIRCLE;
+
+							} else {
+								mRound = FieldType.CROSS;
+							}
+
+							return true;
 						}
-						else
-						{
-							mRound = FieldType.CROSS;
-						}
-						
+					}
+				}
+				return false;
+			}
+		});
+		
+		
+		//menuScene.setTouchAreaBindingOnActionDownEnabled(false);
+		//menuScene.setTouchAreaBindingOnActionMoveEnabled(false);
+		menuScene.setOnAreaTouchListener(new IOnAreaTouchListener() {
+			
+			@Override
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent, ITouchArea pTouchArea, float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				if (pSceneTouchEvent.isActionUp()) {
+					if (pTouchArea.equals(menuScene.mBSPlay)) {
+						getEngine().setScene(gameScene);
 						return true;
 					}
 				}
@@ -157,9 +182,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 			}
 		});
 		
-		final Scene scene2 = new Scene();
 		
-		
-		return scene;
+		return menuScene;
 	}
 }
